@@ -22,14 +22,19 @@ def run_login_test(name, email, password, expected_error=None):
         page.click('button[data-id="Login"][type="submit"]')
 
         # Check result
+        
         try:
             if expected_error:
                 error_locator = page.locator(
                     f'div.alert.alert-danger:has-text("{expected_error}")'
+                    
                 )
+
                 expect(error_locator).to_be_visible(timeout=5000)
                 message = f"✅ {name} - Error verified: {expected_error}"
+
             else:
+                
                 expect(page).not_to_have_url(LOGIN_URL, timeout=5000)
                 message = f"✅ {name} - Login successful"
 
@@ -42,7 +47,6 @@ def run_login_test(name, email, password, expected_error=None):
         # Close browser
         browser.close()
 
-
 def test_payvibe_login_cases():
 
     scenarios = [
@@ -52,12 +56,14 @@ def test_payvibe_login_cases():
             "password": "Lcs1423$#",
             "error_msg": None,
         },
+        
         {
             "name": "Invalid Email & Invalid Password",
             "email": "devrajsir@laitkor.com",
             "password": "Lcs@@1423$#",
             "error_msg": "Please enter valid credential",
         },
+
         {
             "name": "Invalid Email & Valid Password",
             "email": "devrajsir@laitkor.com",
@@ -70,13 +76,14 @@ def test_payvibe_login_cases():
             "password": "Lcs@@1423$#",
             "error_msg": "Please enter valid credential",
         },
+
         {
             "name": "No Credentials",
             "email": "",
             "password": "",
             "error_msg": "Email and Password fields are required",
         },
-        
+
     ]
 
     # Run all scenarios
@@ -93,3 +100,4 @@ def test_payvibe_login_cases():
     for result in test_results:
         print(result)
     print("\n=============================================\n")
+

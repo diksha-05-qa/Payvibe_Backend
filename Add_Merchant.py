@@ -1,77 +1,108 @@
-from playwright.sync_api import sync_playwright
+import pytest
+from playwright.async_api import async_playwright
 
-def test_create_merchant():
-    with sync_playwright() as p:
+@pytest.mark.asyncio
+async def test_create_merchant():
+    async with async_playwright() as p:
 
-        # Launch browser
-        browser = p.chromium.launch(headless=False)
-        page = browser.new_page()
+        # ---------------- BROWSER ----------------
+        browser = await p.chromium.launch(
+            headless=False,
+            slow_mo=300
+        )
+        page = await browser.new_page()
+        page.set_default_timeout(60000)
 
-        # ----------------- LOGIN -----------------
-        page.goto("https://payvibe-frontend2024.dealopia.com/login")
-        page.get_by_role("textbox", name="Email Address", exact=True).fill("devraj+2@laitkor.com")
-        page.get_by_role("textbox", name="Password").fill("Lcs1423$#")
-        page.locator("form").filter(has_text="LoginLost your password").get_by_role("button").click()
-        
-        # ----------------- NAVIGATE TO MERCHANTS -----------------
-        page.locator("a").filter(has_text="Merchants").click()
-        page.get_by_role("link", name="Create New").click()
+        # ---------------- LOGIN ----------------
+        await page.goto("https://payvibe-frontend2024.dealopia.com/login")
 
-        # ----------------- MERCHANT DETAILS -----------------
-        page.get_by_role("textbox", name="* Merchant Name").fill("Hannah")
-        page.get_by_role("textbox", name="Meta Keywords").fill("HannahKeyword")
-        page.get_by_role("textbox", name="* Legal Name").fill("Leagle test")
-        page.get_by_role("textbox", name="Meta Description").fill("Meta desc Test")
-        page.get_by_role("textbox", name="Enter Website URL").fill("https://www.google.com/")
-        page.get_by_role("textbox", name="Facebook Page").fill("https://www.facebook.com/")
-        page.get_by_role("textbox", name="Twitter Page").fill("https://x.com/")
-        page.get_by_role("checkbox", name="List in Merchant Directory").check()
+        login_form = page.locator("form")
 
-        # ----------------- USER DETAILS -----------------
-        page.get_by_role("textbox", name="User Name").fill("Nick ")
-        page.get_by_role("textbox", name="User Name").press("Tab")
-        page.get_by_role("textbox", name="First Name").fill("Nick")
-        page.get_by_role("textbox", name="Last Name").fill("George")
-        page.get_by_role("textbox", name="Enter email").fill("Nick@gmail.com")
+        # Email (FIXED strict mode)
+        await login_form.locator("input[name='email']").fill(
+            "devraj+2@laitkor.com"
+        )
 
-        # ----------------- DATE OF BIRTH -----------------
-        page.locator("div").filter(has_text="Date Of Birth//").first.click()
-        page.get_by_role("button").nth(3).click()
-        page.get_by_role("button", name="1 January 2026", exact=True).click()
+        # Password
+        await login_form.locator("input[type='password']").fill(
+            "Lcs1423$#"
+        )
 
-        # ----------------- PHONE -----------------
-        page.get_by_role("textbox", name="Enter Phone Number").fill("983-990-3374_")
+        # Login button (FIXED strict mode)
+        await login_form.locator("button[type='submit']").click()
 
-        # ----------------- ADDRESS -----------------
-        page.locator('select[name="Country"]').select_option("CA")
-        page.locator('select[name="state"]').select_option("MB")
-        page.get_by_role("textbox", name="Address 2").fill("xccv")
-        page.get_by_role("textbox", name="Address 1").fill("gfgfg")
-        page.get_by_role("textbox", name="*City").fill("fdg")
-        page.get_by_role("textbox", name="Zip Code").fill("20112")
+        # ---------------- WAIT FOR DASHBOARD ----------------
+        await page.wait_for_url("**/dashboard**")
+        await page.screenshot(path="after_login.png", full_page=True)
 
-        # ----------------- DROPDOWN SELECTION -----------------
-        page.get_by_label("* City:").select_option("59bc4089ed8ca3a10cbad142167ea7b8")
-        page.get_by_label("Sales Person").select_option("f6db082365eb9ccb1f1f1a0315811523")
+        # ---------------- SIDEBAR (IF COLLAPSED) ----------------
+        toggle = page.locator("button[aria-label*='Toggle']")
+        if await toggle.count() > 0 and await toggle.is_visible():
+            await toggle.click()
 
-        # ----------------- SAVE MERCHANT -----------------
-        page.get_by_role("button", name="Save").click()
+        # ---------------- NAVIGATE TO MERCHANTS ----------------
+        await page.locator("a:has-text('Merchants')").first.click()
+        await page.locator("a:has-text('Create New')").click()
 
-        # ----------------- MERCHANT LIST & VIEW -----------------
-        page.get_by_role("link", name="Merchant List").click()
+        # ---------------- MERCHANT DETAILS ----------------
+        await page.get_by_label("* Merchant Name").fill("Hannah")
+        await page.get_by_label("Meta Keywords").fill("HannahKeyword")
+        await page.get_by_label("* Legal Name").fill("Legal Test")
+        await page.get_by_label("Meta Description").fill("Meta desc Test")
 
-        # Use .first to avoid strict mode violation
-        page.get_by_role("row", name="Hannah Nick@gmail.com Nick").locator("#bg-nested-dropdown").first.click()
-        page.get_by_role("menuitem", name="View", exact=True).click()
+        await page.get_by_label("Enter Website URL").fill(
+            "https://www.google.com/"
+        )
+        await page.get_by_label("Facebook Page").fill(
+            "https://www.facebook.com/"
+        )
+        await page.get_by_label("Twitter Page").fill(
+            "https://x.com/"
+        )
 
-        # Go to Dashboard
-        page.get_by_role("button", name="Dashboard").click()
+        await page.get_by_role(
+            "checkbox",
+            name="List in Merchant Directory"
+        ).check()
 
-        # Close browser
-        browser.close()
+        # ---------------- USER DETAILS ----------------
+        await page.get_by_label("User Name").fill("Nick")
+        await page.get_by_label("First Name").fill("Nick")
+        await page.get_by_label("Last Name").fill("George")
 
+        # second email field (user email)
+        await page.locator("input[name='email']").nth(1).fill(
+            "nick@gmail.com"
+        )
 
-# ----------------- RUN TEST -----------------
-if __name__ == "__main__":
-    test_create_merchant()
+        # ---------------- DOB ----------------
+        await page.get_by_text("Date Of Birth").click()
+        await page.get_by_role("button", name="1 January 2026").click()
 
+        # ---------------- PHONE ----------------
+        await page.get_by_label("Enter Phone Number").fill("9839903374")
+
+        # ---------------- ADDRESS ----------------
+        await page.locator("select[name='Country']").select_option("CA")
+        await page.locator("select[name='state']").select_option("MB")
+
+        await page.get_by_label("Address 1").fill("gfgfg")
+        await page.get_by_label("Address 2").fill("xccv")
+        await page.get_by_label("*City").fill("fdg")
+        await page.get_by_label("Zip Code").fill("20112")
+
+        # ---------------- DROPDOWNS ----------------
+        await page.get_by_label("* City:").select_option(
+            "59bc4089ed8ca3a10cbad142167ea7b8"
+        )
+        await page.get_by_label("Sales Person").select_option(
+            "f6db082365eb9ccb1f1f1a0315811523"
+        )
+
+        # ---------------- SAVE ----------------
+        await page.get_by_role("button", name="Save").click()
+
+        await page.wait_for_timeout(5000)
+        await page.screenshot(path="merchant_created.png", full_page=True)
+
+        await browser.close()
