@@ -37,7 +37,7 @@ def run_login_test(name, email, password, expected_error=None):
                 
                 expect(page).not_to_have_url(LOGIN_URL, timeout=5000)
                 message = f"✅ {name} - Login successful"
-
+                
         except Exception as e:
             message = f"❌ {name} - Test Failed: {str(e)}"
 
