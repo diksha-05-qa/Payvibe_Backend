@@ -3,6 +3,7 @@ from playwright.async_api import async_playwright
 
 async def run():
     async with async_playwright() as p:
+
         browser = await p.chromium.launch(headless=False)  # Change to True for headless
         context = await browser.new_context()
         page = await context.new_page()
@@ -10,6 +11,8 @@ async def run():
         # ----------------------
         # 1️⃣ Login
         # ----------------------
+
+
         await page.goto("https://payvibe-frontend2024.dealopia.com/login")
         await page.get_by_role("textbox", name="Email Address", exact=True).fill("devraj+2@laitkor.com")
         await page.get_by_role("textbox", name="Password").fill("Lcs1423$#")
@@ -22,6 +25,8 @@ async def run():
         # ----------------------
         # 2️⃣ Navigate to Merchant List
         # ----------------------
+
+
         await page.locator("a", has_text="Merchants").click()
         await asyncio.sleep(5)
         await page.get_by_role("link", name="Merchant List").click()
@@ -31,6 +36,8 @@ async def run():
         # 3️⃣ Edit Merchant
         # ----------------------
         # Wait for rows to load
+
+
         await page.locator('role=row >> text=Pizza Hut Merchant').first.wait_for(state="visible", timeout=60000)
 
         rows = page.locator('role=row >> text=Pizza Hut Merchant')
@@ -66,9 +73,9 @@ async def run():
         await page.get_by_text("success: Merchant detail has").wait_for(state="visible", timeout=60000)
         await asyncio.sleep(5)
 
-        # ----------------------
+        # ---------------------- 
         # 4️⃣ View Updated Merchant
-        # ----------------------
+        # ---------------------- 
         await page.get_by_role("link", name="Merchant List").click()
         await asyncio.sleep(5)
 
@@ -79,9 +86,11 @@ async def run():
             await asyncio.sleep(1)
             dropdown = updated_rows.nth(i).locator('xpath=..//button[@id="bg-nested-dropdown"]')
             try:
+
                 await dropdown.click()
                 await asyncio.sleep(5)
                 break
+
             except:
                 continue
 
@@ -91,6 +100,8 @@ async def run():
         # ----------------------
         # 5️⃣ Navigate to Dashboard
         # ----------------------
+
+        
         await page.get_by_role("button", name="Dashboard").click()
         await asyncio.sleep(5)
 
